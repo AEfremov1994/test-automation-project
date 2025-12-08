@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+//require('dotenv').config();
 
 test.describe('Registration tests', {
   annotation: {
@@ -10,13 +11,12 @@ test.describe('Registration tests', {
 	test.beforeEach(async({page}) => {
 
 		// Navigate to Home Page
-		await page.goto("http://automationexercise.com");
+		await page.goto('');
 		await expect(page.getByRole('link', { name: 'Home' })).toHaveAttribute('style', 'color: orange;');
 
 	});
 	
 	test('Test Case 1: Register User', async({page}) => {
-
 		const navigationBarMenu = page.locator('.navbar-nav');
 		const signUpForm = page.locator('.signup-form');
 		const registrationForm = page.locator('.login-form');
@@ -27,7 +27,7 @@ test.describe('Registration tests', {
 
 		// Fill new test user name and email
 		await signUpForm.getByRole('textbox', {name: 'name'}).fill('NewTestUser');
-		await signUpForm.getByRole('textbox', { name: 'email' }).fill('testuser321@test.com');
+		await signUpForm.getByRole('textbox', { name: 'email' }).fill(process.env.NEW_USER_EMAIL!);
 
 		// click 'Sign Up' button
 		await signUpForm.getByRole('button').click();
@@ -36,8 +36,8 @@ test.describe('Registration tests', {
 		await expect(registrationForm).toContainText('Enter Account Information');
 		await registrationForm.locator('[data-qa="title"]').nth(0).check();
 		await expect(registrationForm.locator('[data-qa="name"]')).toHaveValue('NewTestUser');
-		await expect(registrationForm.getByRole('textbox', {name: 'email'})).toHaveValue('testuser321@test.com');
-		await registrationForm.getByRole('textbox', {name: 'password'}).fill('testPassword321');
+		await expect(registrationForm.getByRole('textbox', {name: 'email'})).toHaveValue(process.env.NEW_USER_EMAIL!);
+		await registrationForm.getByRole('textbox', {name: 'password'}).fill(process.env.NEW_USER_PASSWORD!);
 		await registrationForm.locator('select[name="days"]').selectOption('18');
 		await registrationForm.locator('select[name="months"]').selectOption('June');
 		await registrationForm.locator('select[name="years"]').selectOption('1994');
@@ -86,7 +86,6 @@ test.describe('Registration tests', {
   	test('Test Case 5: Register User with existing email', async ({page}) => {
 
 		const existingUserName = 'Alex Existing';
-		const existingUserEmail = 'testexisting@abc.com';
 
 		const signUpForm = page.locator('.signup-form');
 
@@ -96,7 +95,7 @@ test.describe('Registration tests', {
 
 		// Fill existing user name and email
 		await signUpForm.getByRole('textbox', {name: 'name'}).fill(existingUserName);
-		await signUpForm.getByRole('textbox', { name: 'email' }).fill(existingUserEmail);
+		await signUpForm.getByRole('textbox', { name: 'email' }).fill(process.env.EXISTING_USER_EMAIL!);
 
 		// click 'Sign Up' button
 		await signUpForm.getByRole('button').click();
@@ -117,7 +116,7 @@ test.describe('Login and logout tests', {
 	test.beforeEach(async({page}) => {
 
 		// Navigate to Home Page
-		await page.goto("http://automationexercise.com");
+		await page.goto('');
 		await expect(page.getByRole('link', { name: 'Home' })).toHaveAttribute('style', 'color: orange;');
 
 	});
@@ -127,28 +126,20 @@ test.describe('Login and logout tests', {
 		const navigationBarMenu = page.locator('.navbar-nav');
 		const loginForm = page.locator('.login-form');
 		const existingUserName = 'Alex Existing';
-		const existingUserEmail = 'testexisting@abc.com';
-		const existingUserPassword = '12345678';
 
 		// Navigate to Login/SignUp page
 		await navigationBarMenu.getByRole('link', { name: 'Signup / Login' }).click();
 		await expect(loginForm).toContainText('Login to your account');
 
 		// Fill valid test user email and password
-		await loginForm.getByRole('textbox', { name: 'email' }).fill(existingUserEmail);
-		await loginForm.getByRole('textbox', {name: 'password'}).fill(existingUserPassword);
+		await loginForm.getByRole('textbox', { name: 'email' }).fill(process.env.EXISTING_USER_EMAIL!);
+		await loginForm.getByRole('textbox', {name: 'password'}).fill(process.env.EXISTING_USER_PASSWORD!);
 
 		// click 'Login' button
 		await loginForm.getByRole('button').click();
 
 		//verify user successfully logged in
 		await expect(navigationBarMenu).toContainText(`Logged in as ${existingUserName}`);
-
-		// // Delete created account
-		// await navigationBarMenu.getByRole('link', {name: 'Delete Account'}).click();
-
-		// // verify account successfully deleted
-		// await expect(page.locator('[data-qa="account-deleted"]')).toContainText('Account Deleted!');
 
 	});
 
@@ -181,16 +172,14 @@ test.describe('Login and logout tests', {
 		const navigationBarMenu = page.locator('.navbar-nav');
 		const loginForm = page.locator('.login-form');
 		const existingUserName = 'Alex Existing';
-		const existingUserEmail = 'testexisting@abc.com';
-		const existingUserPassword = '12345678';
 
 		// Navigate to Login/SignUp page
 		await navigationBarMenu.getByRole('link', { name: 'Signup / Login' }).click();
 		await expect(loginForm).toContainText('Login to your account');
 
 		// Fill valid test user email and password
-		await loginForm.getByRole('textbox', { name: 'email' }).fill(existingUserEmail);
-		await loginForm.getByRole('textbox', {name: 'password'}).fill(existingUserPassword);
+		await loginForm.getByRole('textbox', { name: 'email' }).fill(process.env.EXISTING_USER_EMAIL!);
+		await loginForm.getByRole('textbox', {name: 'password'}).fill(process.env.EXISTING_USER_PASSWORD!);
 
 		// click 'Login' button
 		await loginForm.getByRole('button').click();
