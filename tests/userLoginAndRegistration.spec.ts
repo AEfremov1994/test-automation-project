@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { environment as ENV } from '../utils/env.ts'
+import { HomePage } from '../page-objects/homePage.ts';
+import { SignUpLoginPage } from '../page-objects/signUpLoginPage.ts';
 
 test.describe(
   'Registration tests',
@@ -11,140 +13,94 @@ test.describe(
   },
   () => {
     test.beforeEach(async ({ page }) => {
+	
+		// Open new Browser window (if not opened yet) and navigate to Home Page
+	  	await page.goto(ENV.BASE_URL!)
 
-      // Navigate to Home Page
-      await page.goto(ENV.BASE_URL!)
-      await expect(page.getByRole('link', { name: 'Home' })).toHaveAttribute(
-        'style',
-        'color: orange;'
-      )
     })
 
     test('Test Case 1: Register User', async ({ page }) => {
-      const navigationBarMenu = page.locator('.navbar-nav')
-      const signUpForm = page.locator('.signup-form')
-      const registrationForm = page.locator('.login-form')
 
-      // Navigate to Login/SignUp page
-      await page.getByRole('link', { name: 'Signup / Login' }).click()
-      await expect(signUpForm).toContainText('New User Signup!')
+		const homePage = new HomePage(page) 
+		const signUpLoginPage = new SignUpLoginPage(page) 
 
-      // Fill new test user name and email
-      await signUpForm
-        .getByRole('textbox', { name: 'name' })
-        .fill('NewTestUser')
-      await signUpForm
-        .getByRole('textbox', { name: 'email' })
-        .fill(ENV.NEW_USER_EMAIL!)
+		const testUserName = 'New Test User'
 
-      // click 'Sign Up' button
-      await signUpForm.getByRole('button').click()
+      	// Navigate to Login/SignUp page
+      	await homePage.navigationBar.goToSignUpLoginPage()
+      	await expect(signUpLoginPage.$signUpForm).toContainText('New User Signup!')
 
-      // Input new user information
-      await expect(registrationForm).toContainText('Enter Account Information')
-      await registrationForm.locator('[data-qa="title"]').nth(0).check()
-      await expect(registrationForm.locator('[data-qa="name"]')).toHaveValue(
-        'NewTestUser'
-      )
-      await expect(
-        registrationForm.getByRole('textbox', { name: 'email' })
-      ).toHaveValue(ENV.NEW_USER_EMAIL!)
-      await registrationForm
-        .getByRole('textbox', { name: 'password' })
-        .fill(ENV.NEW_USER_PASSWORD!)
-      await registrationForm.locator('select[name="days"]').selectOption('18')
-      await registrationForm
-        .locator('select[name="months"]')
-        .selectOption('June')
-      await registrationForm
-        .locator('select[name="years"]')
-        .selectOption('1994')
+		// Fill new test user name and email and click Signup button
+		signUpLoginPage.signup(testUserName, ENV.NEW_USER_EMAIL!)
 
-      // Subscribe for newsletter and special offers
-      await registrationForm
-        .getByRole('checkbox', { name: 'newsletter' })
-        .check()
-      await registrationForm.locator('input[name="optin"]').check()
+		// Input new user information
+		await expect(signUpLoginPage.$loginForm).toContainText('Enter Account Information')
+		await signUpLoginPage.$maleTitleRadioButton.check()
+		await expect(signUpLoginPage.$nameInput).toHaveValue(testUserName)
+		await expect(signUpLoginPage.$emailInput).toHaveValue(ENV.NEW_USER_EMAIL!)
+		await signUpLoginPage.$passwordInput.fill(ENV.NEW_USER_PASSWORD!)
+		await signUpLoginPage.$daySelector.selectOption('18')
+		await signUpLoginPage.$monthSelector.selectOption('June')
+		await signUpLoginPage.$yearSelector.selectOption('1994')
 
-      // input Address information
-      await registrationForm.locator('[data-qa="first_name"]').fill('Alex')
-      await registrationForm.locator('[data-qa="last_name"]').fill('Tester')
-      await registrationForm
-        .locator('[data-qa="company"]')
-        .fill('Self-employed')
-      await registrationForm
-        .locator('[data-qa="address"]')
-        .fill('Noname street, 14359, Mini Company, office 1')
-      await registrationForm
-        .locator('select[name="country"]')
-        .selectOption('Singapore')
-      await registrationForm
-        .locator('[data-qa="state"]')
-        .fill('Singapore state')
-      await registrationForm.locator('[data-qa="city"]').fill('Singapore city')
-      await registrationForm.locator('[data-qa="zipcode"]').fill('12345')
-      await registrationForm
-        .locator('[data-qa="mobile_number"]')
-        .fill('586 588 55')
+		// Subscribe for newsletter and special offers
+		await signUpLoginPage.$signupForNewsCheckbox.check()
+		await signUpLoginPage.$receiveSpecialOffersCheckbox.check()
 
-      // Create new user by clicking 'Create Account' button
-      await registrationForm.getByRole('button').click()
+		// input Address information
+		await signUpLoginPage.$firstNameInput.fill('Alex')
+		await signUpLoginPage.$lastNameInput.fill('Tester')
+		await signUpLoginPage.$companyInput.fill('Self-employed')
+		await signUpLoginPage.$addressInput.fill('Noname street, 14359, Mini Company, office 1')
+		await signUpLoginPage.$countrySelector.selectOption('Singapore')
+		await signUpLoginPage.$stateInput.fill('Singapore state')
+		await signUpLoginPage.$cityInput.fill('Singapore city')
+		await signUpLoginPage.$zipcodeInput.fill('12345')
+		await signUpLoginPage.$mobileNumInput.fill('586 588 55')
 
-      // Verify account successfully created
-      await expect(page.locator('[data-qa="account-created"]')).toContainText(
-        'Account Created!'
-      )
+		// Create new user by clicking 'Create Account' button
+		await signUpLoginPage.$createAccountButton.click()
 
-      // click 'Continue' button to return to Home page
-      await page.locator('[data-qa="continue-button"]').click()
+		// Verify account successfully created
+		await expect(signUpLoginPage.$accountCreatedConfirmation).toContainText('Account Created!')
 
-      // verify 'logged in as <created user>' is displayed on Home page
-      await expect(navigationBarMenu).toContainText('Logged in as NewTestUser')
+		// click 'Continue' button to return to Home page
+		await signUpLoginPage.$continueButton.click()
 
-      // Delete created account
-      await navigationBarMenu
-        .getByRole('link', { name: 'Delete Account' })
-        .click()
+		// verify 'logged in as <created user>' is displayed on Home page
+		await expect(homePage.navigationBar.$navBarMenu).toContainText(`Logged in as ${testUserName}`)
 
-      // verify account successfully deleted
-      await expect(page.locator('[data-qa="account-deleted"]')).toContainText(
-        'Account Deleted!'
-      )
+		// Delete created account
+		await homePage.navigationBar.$deleteAccountLink.click()
 
-      // click 'Continue' button to return to Home page
-      await page.locator('[data-qa="continue-button"]').click()
+		// verify account successfully deleted
+		await expect(homePage.$accountDeletedConfirmation).toContainText('Account Deleted!')
 
-      // verify 'logged in as ...' is not present on the Home page anymore
-      await expect(navigationBarMenu).not.toContainText(
-        'Logged in as NewTestUser'
-      )
+		// click 'Continue' button to return to Home page
+		await homePage.$continueButton.click()
+
+		// verify 'logged in as ...' is not present on the Home page anymore
+		await expect(homePage.navigationBar.$navBarMenu).not.toContainText('Logged in as')
     })
 
     test('Test Case 5: Register User with existing email', async ({ page }) => {
-      const existingUserName = 'Alex Existing'
+      
+		const homePage = new HomePage(page) 
+      	const signUpLoginPage = new SignUpLoginPage(page)
 
-      const signUpForm = page.locator('.signup-form')
+		const existingUserName = 'Alex Existing'
 
-      // Navigate to Login/SignUp page
-      await page.getByRole('link', { name: 'Signup / Login' }).click()
-      await expect(signUpForm).toContainText('New User Signup!')
+		// Navigate to Login/SignUp page
+		await homePage.navigationBar.goToSignUpLoginPage()
+		await expect(signUpLoginPage.$signUpForm).toContainText('New User Signup!')
 
-      // Fill existing user name and email
-      await signUpForm
-        .getByRole('textbox', { name: 'name' })
-        .fill(existingUserName)
-      await signUpForm
-        .getByRole('textbox', { name: 'email' })
-        .fill(ENV.EXISTING_USER_EMAIL!)
+		// Fill existing user name and email and click 'Sign Up' button
+		signUpLoginPage.signup(existingUserName, ENV.EXISTING_USER_EMAIL!)
 
-      // click 'Sign Up' button
-      await signUpForm.getByRole('button').click()
-
-      // verify error message 'Email Address already exist!' appeared
-      await expect(signUpForm).toContainText('Email Address already exist!')
-    })
-  }
-)
+		// verify error message 'Email Address already exist!' appeared
+		await expect(signUpLoginPage.$signUpForm).toContainText('Email Address already exist!')
+	})
+})
 
 test.describe(
   'Login and logout tests',
@@ -156,111 +112,70 @@ test.describe(
   },
   () => {
     test.beforeEach(async ({ page }) => {
-      // Navigate to Home Page
-      await page.goto(ENV.BASE_URL!)
-      await expect(page.getByRole('link', { name: 'Home' })).toHaveAttribute(
-        'style',
-        'color: orange;'
-      )
+		
+		// Navigate to Home Page
+      	await page.goto(ENV.BASE_URL!)
+
     })
 
-    test('Test Case 2: Login User with correct email and password', async ({
-      page,
-    }) => {
-      const navigationBarMenu = page.locator('.navbar-nav')
-      const loginForm = page.locator('.login-form')
-      const existingUserName = 'Alex Existing'
+    test('Test Case 2: Login User with correct email and password', async ({ page }) => {
 
-      // Navigate to Login/SignUp page
-      await navigationBarMenu
-        .getByRole('link', { name: 'Signup / Login' })
-        .click()
-      await expect(loginForm).toContainText('Login to your account')
+		const homePage = new HomePage(page)
+		const signUpLoginPage = new SignUpLoginPage(page)
+      	
+		const existingUserName = 'Alex Existing'
 
-      // Fill valid test user email and password
-      await loginForm
-        .getByRole('textbox', { name: 'email' })
-        .fill(ENV.EXISTING_USER_EMAIL!)
-      await loginForm
-        .getByRole('textbox', { name: 'password' })
-        .fill(ENV.EXISTING_USER_PASSWORD!)
+		// Navigate to Login/SignUp page
+		await homePage.navigationBar.goToSignUpLoginPage()
+		await expect(signUpLoginPage.$loginForm).toContainText('Login to your account')
 
-      // click 'Login' button
-      await loginForm.getByRole('button').click()
+		// Login as existing test user
+		signUpLoginPage.login(ENV.EXISTING_USER_EMAIL!, ENV.EXISTING_USER_PASSWORD!)
 
-      //verify user successfully logged in
-      await expect(navigationBarMenu).toContainText(
-        `Logged in as ${existingUserName}`
-      )
+		//verify user successfully logged in
+		await expect(homePage.navigationBar.$navBarMenu).toContainText(`Logged in as ${existingUserName}`)
     })
 
-    test('Test Case 3: Login User with incorrect email and password', async ({
-      page,
-    }) => {
-      const navigationBarMenu = page.locator('.navbar-nav')
-      const loginForm = page.locator('.login-form')
-      const incorrectUserEmail = 'testincorrect@abc.com'
-      const incorrectUserPassword = '55555555'
+    test('Test Case 3: Login User with incorrect email and password', async ({ page }) => {
+      
+		const homePage = new HomePage(page)
+		const signUpLoginPage = new SignUpLoginPage(page)
 
-      // Navigate to Login/SignUp page
-      await navigationBarMenu
-        .getByRole('link', { name: 'Signup / Login' })
-        .click()
-      await expect(loginForm).toContainText('Login to your account')
+		const invalidUserEmail = 'testincorrect@abc.com'
+		const invalidUserPassword = '55555555'
 
-      // Fill valid test user email and password
-      await loginForm
-        .getByRole('textbox', { name: 'email' })
-        .fill(incorrectUserEmail)
-      await loginForm
-        .getByRole('textbox', { name: 'password' })
-        .fill(incorrectUserPassword)
+		// Navigate to Login/SignUp page
+		await homePage.navigationBar.goToSignUpLoginPage()
+		await expect(signUpLoginPage.$loginForm).toContainText('Login to your account')
 
-      // click 'Login' button
-      await loginForm.getByRole('button').click()
+		// Try to login with invalid credentials
+		await signUpLoginPage.login(invalidUserEmail, invalidUserPassword)
 
-      //verify user login is not performed and error message is displayed
-      await expect(navigationBarMenu).not.toContainText('Logged in as')
-      await expect(loginForm).toContainText(
-        'Your email or password is incorrect!'
-      )
+		//verify user is NOT logged in and error message is displayed
+		await expect(signUpLoginPage.navigationBar.$navBarMenu).not.toContainText('Logged in as')
+		await expect(signUpLoginPage.$loginForm).toContainText('Your email or password is incorrect!')
     })
 
     test('Test Case 4: Logout User', async ({ page }) => {
-      const navigationBarMenu = page.locator('.navbar-nav')
-      const loginForm = page.locator('.login-form')
-      const existingUserName = 'Alex Existing'
+      	
+		const homePage = new HomePage(page)
+		const signUpLoginPage = new SignUpLoginPage(page)
+      	
+		const existingUserName = 'Alex Existing'
 
-      // Navigate to Login/SignUp page
-      await navigationBarMenu
-        .getByRole('link', { name: 'Signup / Login' })
-        .click()
-      await expect(loginForm).toContainText('Login to your account')
+      	// Navigate to Login/SignUp page
+      	await homePage.navigationBar.goToSignUpLoginPage()
+		await expect(signUpLoginPage.$loginForm).toContainText('Login to your account')
 
-      // Fill valid test user email and password
-      await loginForm
-        .getByRole('textbox', { name: 'email' })
-        .fill(ENV.EXISTING_USER_EMAIL!)
-      await loginForm
-        .getByRole('textbox', { name: 'password' })
-        .fill(ENV.EXISTING_USER_PASSWORD!)
 
-      // click 'Login' button
-      await loginForm.getByRole('button').click()
+      	// Login as a valid user
+		await signUpLoginPage.login(ENV.EXISTING_USER_EMAIL!, ENV.EXISTING_USER_PASSWORD!)
 
-      //verify user successfully logged in
-      await expect(navigationBarMenu).toContainText(
-        `Logged in as ${existingUserName}`
-      )
+      	// perform logout
+      	await homePage.navigationBar.$logoutLink.click()
 
-      // perform logout
-      await navigationBarMenu.getByRole('link', { name: 'Logout' }).click()
-
-      // verify logout is successful
-      await expect(
-        navigationBarMenu.getByRole('link', { name: 'Signup / Login' })
-      ).toHaveAttribute('style', 'color: orange;')
-      await expect(loginForm).toContainText('Login to your account')
-    })
-  }
-)
+      	// verify logout is successful
+      	await expect(signUpLoginPage.navigationBar.$signUpLoginPageLink).toHaveAttribute('style', 'color: orange;')
+      	await expect(signUpLoginPage.$loginForm).toContainText('Login to your account')
+  	})
+})
