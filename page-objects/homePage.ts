@@ -1,39 +1,34 @@
 import { Page, Locator } from '@playwright/test'
-import { NavigationBar } from './navigationBar'
+import { BasePage } from './basePage'
 
-export class HomePage {
-	
-	readonly page: Page
-	public name = 'Home Page'
+export class HomePage extends BasePage {
+  public name = 'Home Page'
 
-	// Main locators
-	readonly $adCarousel: Locator
-	readonly $leftControlCarouselButton: Locator
-	readonly $rightControlCarouselButton: Locator
-	readonly $testCasesButton: Locator
-	readonly $apiTestsButton: Locator
+  constructor(readonly page: Page, name = 'Home Page') {
+    super(page)
+    this.name = name
+  }
 
-	// Specific locators
-	readonly $accountDeletedConfirmation: Locator
-	readonly $continueButton: Locator
+  // Main locators (lazy getters)
+  public get adCarousel(): Locator {
+    return this.page.locator('#slider-carousel')
+  }
 
-	navigationBar: NavigationBar
+  public get leftControlCarouselButton(): Locator {
+    return this.adCarousel.locator('.left.control-carousel')
+  }
 
-	constructor(page: Page, name = 'Home Page') {
+  public get rightControlCarouselButton(): Locator {
+    return this.adCarousel.locator('.right.control-carousel')
+  }
 
-		this.page = page
-		this.name = name
+  public get testCasesButton(): Locator {
+    return this.adCarousel.getByRole('button', { name: 'Test Cases' })
+  }
 
-		this.$adCarousel = page.locator('#slider-carousel')
-		this.$leftControlCarouselButton = this.$adCarousel.locator('.left.control-carousel')
-		this.$rightControlCarouselButton = this.$adCarousel.locator('.right.control-carousel')
-		this.$testCasesButton = this.$adCarousel.getByRole('button', {name: 'Test Cases'})
-		this.$apiTestsButton = this.$adCarousel.getByRole('button', {name: 'APIs list for practice'})
-
-		this.$accountDeletedConfirmation = page.getByTestId('account-deleted')
-		this.$continueButton = page.getByTestId('continue-button')
-
-		this.navigationBar = new NavigationBar(page)
-	}
-
+  public get apiTestsButton(): Locator {
+    return this.adCarousel.getByRole('button', {
+      name: 'APIs list for practice',
+    })
+  }
 }
