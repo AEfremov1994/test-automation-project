@@ -28,7 +28,7 @@ test.describe(
       )
 
       // Fill new test user name and email and click Signup button
-      await signUpLoginPage.signupAs(testUserName, ENV.NEW_USER_EMAIL!)
+      await signUpLoginPage.signupAs(testUserName, ENV.NEW_USER_EMAIL)
 
       // Input new user information
       await expect(signUpLoginPage.loginForm).toContainText(
@@ -36,8 +36,8 @@ test.describe(
       )
       await signUpLoginPage.maleTitleRadioButton.check()
       await expect(signUpLoginPage.nameInput).toHaveValue(testUserName)
-      await expect(signUpLoginPage.emailInput).toHaveValue(ENV.NEW_USER_EMAIL!)
-      await signUpLoginPage.passwordInput.fill(ENV.NEW_USER_PASSWORD!)
+      await expect(signUpLoginPage.emailInput).toHaveValue(ENV.NEW_USER_EMAIL)
+      await signUpLoginPage.passwordInput.fill(ENV.NEW_USER_PASSWORD)
       await signUpLoginPage.daySelector.selectOption('18')
       await signUpLoginPage.monthSelector.selectOption('June')
       await signUpLoginPage.yearSelector.selectOption('1994')
@@ -103,7 +103,7 @@ test.describe(
       )
 
       // Fill existing user name and email and click 'Sign Up' button
-      await signUpLoginPage.signupAs(existingUserName, ENV.EXISTING_USER_EMAIL!)
+      await signUpLoginPage.signupAs(existingUserName, ENV.EXISTING_USER_EMAIL)
 
       // verify error message 'Email Address already exist!' appeared
       await expect(signUpLoginPage.signUpForm).toContainText(
@@ -141,8 +141,8 @@ test.describe(
 
       // Login as existing test user
       await signUpLoginPage.loginAs(
-        ENV.EXISTING_USER_EMAIL!,
-        ENV.EXISTING_USER_PASSWORD!
+        ENV.EXISTING_USER_EMAIL,
+        ENV.EXISTING_USER_PASSWORD
       )
 
       //verify user successfully logged in
@@ -186,8 +186,8 @@ test.describe(
 
       // Login as a valid user
       await signUpLoginPage.loginAs(
-        ENV.EXISTING_USER_EMAIL!,
-        ENV.EXISTING_USER_PASSWORD!
+        ENV.EXISTING_USER_EMAIL,
+        ENV.EXISTING_USER_PASSWORD
       )
 
       // perform logout
