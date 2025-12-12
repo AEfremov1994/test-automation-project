@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test'
 import { environment as ENV } from '../utils/env.ts'
-import { HomePage } from '../page-objects/homePage.ts'
 import { SignUpLoginPage } from '../page-objects/signUpLoginPage.ts'
 
 test.describe(

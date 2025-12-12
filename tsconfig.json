@@ -50,6 +50,9 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "allowJs": true
+    ,
+    // Use legacy field emit so field initializers that reference `this` behave like constructor assignments
+    "useDefineForClassFields": false
   },
 
   // Only type-check the source/test folders relevant to the project

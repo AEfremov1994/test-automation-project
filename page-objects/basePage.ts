@@ -3,45 +3,33 @@ import { Page, Locator } from '@playwright/test'
 export abstract class BasePage {
   constructor(protected readonly page: Page) {}
 
-  // Main navigation container
-  public get navBarMenu(): Locator {
-    return this.page.locator('.navbar-nav')
-  }
+  // Main navigation container - inline initializer using this.page
+  public navBarMenu: Locator = this.page.locator('.navbar-nav')
 
-  // Navbar links (lazy, computed on access)
-  public get homePageLink(): Locator {
-    return this.navBarMenu.getByRole('link', { name: 'Home' })
-  }
-
-  public get productsPageLink(): Locator {
-    return this.navBarMenu.getByRole('link', { name: 'Products' })
-  }
-
-  public get cartLink(): Locator {
-    return this.navBarMenu.getByRole('link', { name: 'Cart' })
-  }
-
-  public get signUpLoginPageLink(): Locator {
-    return this.navBarMenu.getByRole('link', { name: 'Signup / Login' })
-  }
-
-  public get testCasesPageLink(): Locator {
-    return this.navBarMenu.getByRole('link', { name: 'Test Cases' })
-  }
-
-  public get apiTestingPageLink(): Locator {
-    return this.navBarMenu.getByRole('link', { name: 'API Testing' })
-  }
-
-  public get contactUsPageLink(): Locator {
-    return this.navBarMenu.getByRole('link', { name: 'Contact us' })
-  }
-
-  public get logoutLink(): Locator {
-    return this.navBarMenu.getByRole('link', { name: 'Logout' })
-  }
-
-  public get deleteAccountLink(): Locator {
-    return this.navBarMenu.getByRole('link', { name: 'Delete Account' })
-  }
+  // Navbar links initialized inline (will be emitted as constructor assignments)
+  public homePageLink: Locator = this.navBarMenu.getByRole('link', {
+    name: 'Home',
+  })
+  public productsPageLink: Locator = this.navBarMenu.getByRole('link', {
+    name: 'Products',
+  })
+  public cartLink: Locator = this.navBarMenu.getByRole('link', { name: 'Cart' })
+  public signUpLoginPageLink: Locator = this.navBarMenu.getByRole('link', {
+    name: 'Signup / Login',
+  })
+  public testCasesPageLink: Locator = this.navBarMenu.getByRole('link', {
+    name: 'Test Cases',
+  })
+  public apiTestingPageLink: Locator = this.navBarMenu.getByRole('link', {
+    name: 'API Testing',
+  })
+  public contactUsPageLink: Locator = this.navBarMenu.getByRole('link', {
+    name: 'Contact us',
+  })
+  public logoutLink: Locator = this.navBarMenu.getByRole('link', {
+    name: 'Logout',
+  })
+  public deleteAccountLink: Locator = this.navBarMenu.getByRole('link', {
+    name: 'Delete Account',
+  })
 }

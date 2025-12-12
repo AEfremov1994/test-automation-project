@@ -8,27 +8,18 @@ export class HomePage extends BasePage {
     super(page)
     this.name = name
   }
-
-  // Main locators (lazy getters)
-  public get adCarousel(): Locator {
-    return this.page.locator('#slider-carousel')
-  }
-
-  public get leftControlCarouselButton(): Locator {
-    return this.adCarousel.locator('.left.control-carousel')
-  }
-
-  public get rightControlCarouselButton(): Locator {
-    return this.adCarousel.locator('.right.control-carousel')
-  }
-
-  public get testCasesButton(): Locator {
-    return this.adCarousel.getByRole('button', { name: 'Test Cases' })
-  }
-
-  public get apiTestsButton(): Locator {
-    return this.adCarousel.getByRole('button', {
-      name: 'APIs list for practice',
-    })
-  }
+  // Main locators (inline field initializers)
+  public adCarousel: Locator = this.page.locator('#slider-carousel')
+  public leftControlCarouselButton: Locator = this.adCarousel.locator(
+    '.left.control-carousel'
+  )
+  public rightControlCarouselButton: Locator = this.adCarousel.locator(
+    '.right.control-carousel'
+  )
+  public testCasesButton: Locator = this.adCarousel.getByRole('button', {
+    name: 'Test Cases',
+  })
+  public apiTestsButton: Locator = this.adCarousel.getByRole('button', {
+    name: 'APIs list for practice',
+  })
 }
