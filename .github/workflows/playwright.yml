@@ -1,13 +1,39 @@
 name: Playwright Tests
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
+  schedule:
+    - cron: '0 8 * * WED'
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Select browser'
+        required: true
+        type: choice
+        default: 'chrome'
+        options:
+          - chrome
+          - firefox
+          - safari
+          - all
+      tags:
+        description: 'Use test scenario tags'
+        required: false
+        type: boolean
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
+        required: true
+
+
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    # Use selected environment from workflow_dispatch, or default to 'test' for push/pull_request
+    environment: ${{ github.event.inputs.environment || 'test' }}
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -17,11 +43,54 @@ jobs:
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+    - name: Setup environment variables
+      # Use environment from workflow_dispatch input or default to 'test'
+      run: ./scripts/setup-env.sh ${{ github.event.inputs.environment || 'test' }}
+      env:
+        BASE_URL: ${{ secrets.BASE_URL }}
+        EXISTING_USER_EMAIL: ${{ secrets.EXISTING_USER_EMAIL }}
+        EXISTING_USER_PASSWORD: ${{ secrets.EXISTING_USER_PASSWORD }}
+        NEW_USER_EMAIL: ${{ secrets.NEW_USER_EMAIL }}
+        NEW_USER_PASSWORD: ${{ secrets.NEW_USER_PASSWORD }}
     - name: Run Playwright tests
-      run: npx playwright test
+      run: |
+        BROWSER="${{ github.event.inputs.browser || 'chrome' }}"
+        PROJECT_FLAG=""
+        case "$BROWSER" in
+          firefox) PROJECT_FLAG="--project=firefox" ;;
+          safari) PROJECT_FLAG="--project=webkit" ;;
+          chrome) PROJECT_FLAG="--project=chromium" ;;
+          *) true ;;
+        esac
+        npx playwright test $PROJECT_FLAG
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
+    
+  publish-report:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write # Grant write permission for GitHub Pages
+      id-token: write # Grant permission to fetch the OIDC token
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Download the report artifact from the previous job
+      - name: Download report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+      # Deploy the artifact to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./playwright-report # The local path to your report folder
+          publish_branch: gh-pages # The branch the report will be published to
