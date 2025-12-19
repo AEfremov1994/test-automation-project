@@ -143,6 +143,7 @@ jobs:
     - name: Publish to gh-pages
       if: steps.check.outputs.has_results == 'true'
       run: |
+        mkdir -p gh-pages
         rm -rf gh-pages/*
         cp -r allure-report/* gh-pages/
         touch gh-pages/.nojekyll
