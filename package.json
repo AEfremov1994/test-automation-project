@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "test_env=stg npx playwright test --project=chromium"
+    "clean-allure": "rm -rf allure-results",
+    "test": "npm run clean-allure && test_env=test npx playwright test --project=chromium"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +16,7 @@
     "@types/node": "^24.10.1",
     "@typescript-eslint/eslint-plugin": "^6.9.0",
     "@typescript-eslint/parser": "^6.9.0",
+    "allure-playwright": "^3.4.3",
     "cross-env": "^10.1.0",
     "eslint": "^8.57.1",
     "globals": "^16.5.0",
