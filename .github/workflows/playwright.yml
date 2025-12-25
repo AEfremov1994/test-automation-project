@@ -76,85 +76,100 @@ jobs:
         path: allure-results
 
   publish-report:
+    name: Publish Allure Report
     runs-on: ubuntu-latest
     needs: test
-    if: always() && github.ref == 'refs/heads/main'
-
+    # Only run on main branch and if test job didn't fail or get cancelled
+    if: success() && github.ref == 'refs/heads/main' && needs.test.result != 'cancelled'
+    
     permissions:
       contents: write
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-    # 1. Checkout gh-pages branch (history lives here)
-    - name: Checkout gh-pages
-      uses: actions/checkout@v4
-      with:
-        ref: gh-pages
-        path: gh-pages
-      continue-on-error: true
+      # 1. Checkout main branch (current code)
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-    # 2. Checkout main (to get allure-results artifact)
-    - name: Checkout main
-      uses: actions/checkout@v4
+      # 2. Download allure-results artifact from test job
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results
+        continue-on-error: true
 
-    # 3. Download allure-results from test job
-    - name: Download allure results
-      uses: actions/download-artifact@v4
-      with:
-        name: allure-results
-        path: allure-results
-      continue-on-error: true
+      # 3. Check if test results exist
+      - name: Check test results
+        id: check_results
+        run: |
+          if [ -d allure-results ] && [ "$(ls -A allure-results)" ]; then
+            echo "has_results=true" >> $GITHUB_OUTPUT
+            echo "✓ Test results found"
+            ls -la allure-results/ | head -10
+          else
+            echo "has_results=false" >> $GITHUB_OUTPUT
+            echo "✗ No test results found - skipping report generation"
+          fi
 
-    # 4. Check if allure-results exists
-    - name: Check allure results
-      id: check
-      run: |
-        if [ -d allure-results ] && [ "$(ls -A allure-results)" ]; then
-          echo "has_results=true" >> $GITHUB_OUTPUT
-          echo "Allure results found"
-        else
-          echo "has_results=false" >> $GITHUB_OUTPUT
-          echo "No allure results found"
-        fi
+      # 4. Checkout gh-pages to get history
+      - name: Checkout gh-pages history
+        if: steps.check_results.outputs.has_results == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+        continue-on-error: true
 
-    # 5. Restore Allure history
-    - name: Restore Allure history
-      if: steps.check.outputs.has_results == 'true'
-      run: |
-        if [ -d gh-pages/history ]; then
-          echo "Restoring Allure history"
-          mkdir -p allure-results/history
-          cp -r gh-pages/history/* allure-results/history/
-        else
-          echo "No previous history found"
-        fi
+      # 5. Restore allure history
+      - name: Restore allure history
+        if: steps.check_results.outputs.has_results == 'true'
+        run: |
+          if [ -d gh-pages/history ]; then
+            echo "✓ Restoring Allure history from gh-pages"
+            mkdir -p allure-results/history
+            cp -r gh-pages/history/* allure-results/history/ || true
+          else
+            echo "ℹ No previous Allure history found (first run)"
+          fi
 
-    # 6. Install Allure command line (version 2.x) for report generation
-    - name: Install Allure commandline
-      if: steps.check.outputs.has_results == 'true'
-      run: npm install -g allure-commandline --save-dev
+      # 6. Setup Node.js and install Allure CLI
+      - name: Setup Node.js
+        if: steps.check_results.outputs.has_results == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
 
-    # 7. Generate Allure report
-    - name: Generate Allure report
-      if: steps.check.outputs.has_results == 'true'
-      run: |
-        npx allure generate allure-results --clean -o allure-report
+      - name: Install Allure CLI
+        if: steps.check_results.outputs.has_results == 'true'
+        run: npm install -g allure-commandline
 
-    # 8. Publish report to gh-pages
-    - name: Publish to gh-pages
-      if: steps.check.outputs.has_results == 'true'
-      run: |
-        mkdir -p gh-pages
-        rm -rf gh-pages/*
-        cp -r allure-report/* gh-pages/
-        touch gh-pages/.nojekyll
+      # 7. Generate Allure report
+      - name: Generate Allure report
+        if: steps.check_results.outputs.has_results == 'true'
+        run: |
+          npx allure generate allure-results --clean -o allure-report
+          echo "✓ Allure report generated successfully"
 
-    # 9. Commit and push report
-    - name: Commit and push report
-      if: steps.check.outputs.has_results == 'true'
-      run: |
-        cd gh-pages
-        git config user.name "github-actions"
-        git config user.email "github-actions@github.com"
-        git add .
-        git commit -m "Update Allure report [skip ci]" || echo "No changes"
-        git push
+      # 8. Setup Pages artifact
+      - name: Setup Pages
+        if: steps.check_results.outputs.has_results == 'true'
+        uses: actions/configure-pages@v4
+
+      # 9. Upload report as Pages artifact
+      - name: Upload Pages artifact
+        if: steps.check_results.outputs.has_results == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: allure-report
+
+      # 10. Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        if: steps.check_results.outputs.has_results == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
