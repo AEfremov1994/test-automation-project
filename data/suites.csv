@@ -1,0 +1,6 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","1605","Test Case 2: Login User with correct email and password","chromium","2025-12-25","passed","2025-12-25","Login and logout tests","userLoginAndRegistration.spec.ts","",""
+"","1432","Test Case 5: Register User with existing email","chromium","2025-12-25","passed","2025-12-25","Registration tests","userLoginAndRegistration.spec.ts","",""
+"","3612","Test Case 1: Register User","chromium","2025-12-25","passed","2025-12-25","Registration tests","userLoginAndRegistration.spec.ts","",""
+"","1998","Test Case 4: Logout User","chromium","2025-12-25","passed","2025-12-25","Login and logout tests","userLoginAndRegistration.spec.ts","",""
+"","1273","Test Case 3: Login User with incorrect email and password","chromium","2025-12-25","passed","2025-12-25","Login and logout tests","userLoginAndRegistration.spec.ts","",""
