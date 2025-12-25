@@ -138,13 +138,7 @@ jobs:
             echo "ℹ No previous Allure history found (first run)"
           fi
 
-      # 6. Setup Node.js and install Allure CLI
-      - name: Setup Node.js
-        if: steps.check_results.outputs.has_results == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-
+      # 6. Install Allure CLI
       - name: Install Allure CLI
         if: steps.check_results.outputs.has_results == 'true'
         run: npm install -g allure-commandline
