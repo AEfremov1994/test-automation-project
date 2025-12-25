@@ -79,8 +79,8 @@ jobs:
     name: Publish Allure Report
     runs-on: ubuntu-latest
     needs: test
-    # Only run on main branch and if test job didn't fail or get cancelled
-    if: success() && github.ref == 'refs/heads/main' && needs.test.result != 'cancelled'
+    # Run on main branch if test job didn't get cancelled
+    if: github.ref == 'refs/heads/main' && needs.test.result != 'cancelled'
     
     permissions:
       contents: write
