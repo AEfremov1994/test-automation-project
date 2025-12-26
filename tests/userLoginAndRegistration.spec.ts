@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { environment as ENV } from '../utils/env.ts'
 import { SignUpLoginPage } from '../page-objects/signUpLoginPage.ts'
+import { ApiClient, CreateAccountRequest } from '../utils/apiClient.ts'
 
 test.describe(
   'Registration tests',
@@ -16,8 +17,9 @@ test.describe(
       await page.goto('/login')
     })
 
-    test('Test Case 1: Register User', async ({ page }) => {
+    test('Test Case 1: Register User', async ({ page, request }) => {
       const signUpLoginPage = new SignUpLoginPage(page)
+      const apiClient = new ApiClient(request)
 
       const testUserName = 'New Test User'
 
@@ -74,21 +76,20 @@ test.describe(
         `Logged in as ${testUserName}`
       )
 
-      // Delete created account
-      await signUpLoginPage.deleteAccountLink.click()
-
-      // verify account successfully deleted
-      await expect(signUpLoginPage.accountDeletedConfirmation).toContainText(
-        'Account Deleted!'
-      )
-
-      // click 'Continue' button to return to Home page
-      await signUpLoginPage.continueButton.click()
-
-      // verify 'logged in as ...' is not present on the Home page anymore
-      await expect(signUpLoginPage.navBarMenu).not.toContainText(
-        'Logged in as'
-      )
+      // Cleanup: Delete created account via API in afterEach hook
+      test.afterEach(async () => {
+        try {
+          const deleteResponse = await apiClient.deleteAccount(
+            ENV.NEW_USER_EMAIL,
+            ENV.NEW_USER_PASSWORD
+          )
+          console.log(
+            `✓ Account deleted via API: ${deleteResponse.message}`
+          )
+        } catch (error) {
+          console.error('⚠ Failed to delete account via API:', error)
+        }
+      })
     })
 
     test('Test Case 5: Register User with existing email', async ({ page }) => {
@@ -107,6 +108,69 @@ test.describe(
       // verify error message 'Email Address already exist!' appeared
       await expect(signUpLoginPage.signUpForm).toContainText(
         'Email Address already exist!'
+      )
+    })
+
+    test('Test Case 6: Delete Account via UI', async ({ page, request }) => {
+      const signUpLoginPage = new SignUpLoginPage(page)
+      const apiClient = new ApiClient(request)
+
+      const testUserName = 'Delete Test User'
+      const testUserEmail = `delete-user-${Date.now()}@test.com`
+      const testUserPassword = 'Test@123'
+
+      // Setup: Create test user via API
+      const createAccountData: CreateAccountRequest = {
+        name: testUserName,
+        email: testUserEmail,
+        password: testUserPassword,
+        title: 'Mr',
+        birth_date: '15',
+        birth_month: '5',
+        birth_year: '1990',
+        firstname: 'Delete',
+        lastname: 'Tester',
+        company: 'QA Team',
+        address1: 'Test Street 123',
+        country: 'United States',
+        zipcode: '12345',
+        state: 'California',
+        city: 'Los Angeles',
+        mobile_number: '1234567890',
+      }
+
+      try {
+        const createResponse = await apiClient.createAccount(
+          createAccountData
+        )
+        console.log(`✓ Test user created via API: ${createResponse.message}`)
+      } catch (error) {
+        console.error('Failed to create test user via API:', error)
+        throw error
+      }
+
+      // Login with created account
+      await signUpLoginPage.loginAs(testUserEmail, testUserPassword)
+
+      // Verify user successfully logged in
+      await expect(signUpLoginPage.navBarMenu).toContainText(
+        `Logged in as ${testUserName}`
+      )
+
+      // Click Delete Account button
+      await signUpLoginPage.deleteAccountLink.click()
+
+      // Verify account deletion confirmation message appears
+      await expect(signUpLoginPage.accountDeletedConfirmation).toContainText(
+        'Account Deleted!'
+      )
+
+      // Click Continue button to return to Home page
+      await signUpLoginPage.continueButton.click()
+
+      // Verify 'logged in as ...' is not present on the Home page anymore
+      await expect(signUpLoginPage.navBarMenu).not.toContainText(
+        'Logged in as'
       )
     })
   }
